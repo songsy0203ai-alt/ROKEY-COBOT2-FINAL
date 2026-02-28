@@ -1,0 +1,106 @@
+:root {
+  --bg: #0f172a;
+  --card: #111827;
+  --line: #334155;
+  --text: #e2e8f0;
+  --primary: #22c55e;
+  --primary-dark: #16a34a;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  background: linear-gradient(180deg, #020617, #111827);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.topbar {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar h1 { font-size: 1.1rem; margin: 0; }
+.topbar-right { display: flex; align-items: center; gap: 0.8rem; }
+
+.container {
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+.card {
+  background: rgba(17, 24, 39, 0.85);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.form-stack {
+  display: grid;
+  gap: 0.8rem;
+}
+label { display: grid; gap: 0.35rem; }
+input {
+  background: #0b1221;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.6rem 0.7rem;
+}
+button,
+.button-link {
+  border: 0;
+  border-radius: 8px;
+  background: var(--primary);
+  color: #052e16;
+  font-weight: 700;
+  padding: 0.62rem 0.8rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+button:hover,
+.button-link:hover { background: var(--primary-dark); }
+.outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.inline-link {
+  color: #93c5fd;
+  text-decoration: none;
+}
+.inline-link:hover { text-decoration: underline; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.9rem;
+}
+.feature-card h3 { margin-top: 0; }
+
+.flash-list {
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+.flash-list li {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fecaca;
+  border-radius: 8px;
+  padding: 0.55rem 0.7rem;
+  margin-bottom: 0.4rem;
+}
+
+.auth-card {
+  max-width: 440px;
+  margin: 1rem auto;
+}
+

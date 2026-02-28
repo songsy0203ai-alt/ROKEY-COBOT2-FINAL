@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RBOS · AI 협업 및 가상 배선 연습 시스템</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Mono:wght@300;400;500&family=Noto+Sans+KR:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/roslib@1/build/roslib.min.js"></script>
+<style>
+:root {
+  --bg: #0c0e12; --bg2: #10131a; --bg3: #161b25;
+  --surface: #1c2230; --surface2: #222b3a;
+  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.13);
+  --text: #e2e8f0; --text2: #8496b0; --text3: #4a5a72;
+  --accent: #38bdf8; --accent2: #34d399; --warn: #f59e0b;
+  --danger: #f43f5e; --purple: #a78bfa;
+  --mono: 'DM Mono', monospace; --sans: 'Noto Sans KR', sans-serif;
+  --head: 'Syne', sans-serif; --r: 8px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 13px; display: flex; flex-direction: column; }
+
+/* --- TOPBAR --- */
+.topbar { height: 52px; background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; flex-shrink: 0; z-index: 100; }
+.logo { font-family: var(--head); font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: 0.05em; display: flex; align-items: center; gap: 10px; }
+.logo-mark { width: 28px; height: 28px; border-radius: 6px; background: linear-gradient(135deg, var(--accent), var(--purple)); display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; font-weight: 700; }
+
+/* --- LAYOUT --- */
+.layout { display: grid; grid-template-columns: 300px 1fr 280px; flex: 1; overflow: hidden; }
+.panel { background: var(--bg2); display: flex; flex-direction: column; overflow: hidden; border-right: 1px solid var(--border); }
+.panel.right { border-right: none; border-left: 1px solid var(--border); }
+.sec { padding: 12px 14px 6px; font-size: 10px; font-weight: 600; font-family: var(--head); color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; display: flex; justify-content: space-between; }
+.sec-tag { font-family: var(--mono); font-size: 9px; color: var(--text3); background: var(--surface); border: 1px solid var(--border2); padding: 1px 6px; border-radius: 4px; }
+
+/* --- BRAIN SEQUENCE LIST --- */
+#brain-sequence-list { flex: 1; overflow-y: auto; background: var(--bg3); margin: 0 10px; border-radius: 4px; border: 1px solid var(--border); }
+.sequence-item { padding: 10px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: center; transition: 0.3s; }
+.sequence-item.active { background: rgba(167, 139, 250, 0.08); border-left: 3px solid var(--purple); }
+.seq-num { width: 20px; height: 20px; background: var(--purple); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #000; flex-shrink: 0; }
+.seq-info { display: flex; flex-direction: column; gap: 2px; }
+.seq-label { font-family: var(--mono); font-size: 11px; color: var(--text); font-weight: 500; }
+.seq-coord { font-size: 9px; color: var(--text3); font-family: var(--mono); }
+
+/* --- CENTER AREA --- */
+.center { display:flex; flex-direction:column; overflow:hidden; position: relative; background: #000; }
+.c-toolbar { height:48px; background:var(--bg2); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 14px; gap:8px; z-index: 20; }
+.tb-btn { height:30px; padding:0 14px; border-radius:6px; border:1px solid var(--border2); background:var(--surface); color:var(--text); font-size:11px; font-family:var(--head); cursor:pointer; display:flex; align-items:center; gap:6px; transition: 0.2s; }
+.tb-btn.active { background: var(--accent); color: #000; font-weight: 700; }
+.tb-btn.check { background: var(--purple); color: white; border: none; font-weight: 700; }
+
+.cam-container { flex:1; position: relative; overflow: hidden; cursor: crosshair; }
+#camera-stream { width:100%; height:100%; object-fit: contain; position: absolute; top:0; left:0; pointer-events: none; }
+#c-sim { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
+
+/* AI BUBBLE */
+#ai-bubble {
+  position: absolute; top: 60px; right: 20px; width: 260px;
+  background: rgba(12, 14, 18, 0.95); border: 1px solid var(--accent);
+  border-radius: 8px; padding: 15px; backdrop-filter: blur(10px);
+  z-index: 100; box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+  display: none; animation: slideIn 0.3s ease;
+}
+
+/* LOGS & CARDS */
+.data-card { margin: 10px; background: linear-gradient(135deg, var(--surface) 0%, var(--bg3) 100%); border: 1px solid var(--border2); border-radius: var(--r); padding: 15px; }
+.log-body { height: 120px; overflow-y:auto; padding:10px; background: #080a0f; font-family: var(--mono); font-size: 10px; display: flex; flex-direction: column; gap: 5px; }
+.log-entry { padding: 4px 8px; border-radius: 4px; border-left: 2px solid var(--text3); }
+.log-entry.ok { border-left-color: var(--accent2); color: var(--accent2); }
+.log-entry.ai { border-left-color: var(--purple); color: var(--purple); }
+.log-entry.err { border-left-color: var(--danger); color: var(--danger); }
+
+#alt-status { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 5px 15px; border-radius: 20px; border: 1px solid var(--accent); color: var(--accent); font-family: var(--mono); font-size: 12px; display: none; z-index: 100; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo"><div class="logo-mark">R</div> RBOS<span>·</span>HRC Simulator</div>
+  <div style="margin-left:auto; display:flex; gap:10px;">
+    <div class="sec-tag" id="status-tag">ROS CONNECTED</div>
+    <div class="sec-tag" id="clock">00:00:00</div>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="panel">
+    <div class="sec">연습 미션 <span class="sec-tag">MISSION 01</span></div>
+    <div class="data-card">
+      <div style="font-weight:700; color:var(--accent); margin-bottom:5px;">가상 배선 가이드</div>
+      <div style="font-size:11px; color:var(--text2); line-height:1.5;">
+        Brain AI가 지시하는 순서에 따라 <br>배선을 연습해 보세요.
+      </div>
+    </div>
+
+    <div class="sec">AI 작업 지시 순서 <span class="sec-tag" id="seq-count">0</span></div>
+    <div id="brain-sequence-list">
+      <div style="padding:40px 20px; text-align:center; color:var(--text3); font-size:11px;">스캔이 완료되면<br>순서가 나타납니다.</div>
+    </div>
+    
+    <div class="sec">실시간 YOLO 데이터</div>
+    <div id="yolo-list" style="padding:10px 14px; font-family:var(--mono); font-size:10px; color:var(--accent2); height:120px; overflow-y:auto;">
+      단자를 탐색 중...
+    </div>
+
+    <div class="sec" style="margin-top:auto">시스템 로그</div>
+    <div class="log-body" id="log-body"></div>
+  </div>
+
+  <div class="center">
+    <div class="c-toolbar">
+      <button class="tb-btn" id="btn-mode" onclick="togglePractice()">📸 현장 캡처 & 연습</button>
+      <button class="tb-btn" onclick="clearCanvas()">지우기</button>
+      <div style="flex:1"></div>
+      <button class="tb-btn check" id="btn-check" onclick="checkWithGemini()" style="display:none;">✦ Gemini AI 검증</button>
+    </div>
+
+    <div class="cam-container" id="cam-container">
+      <div id="ai-bubble">
+        <div style="font-size:10px; color:var(--purple); font-weight:700; margin-bottom:8px; display:flex; justify-content:space-between;">
+          <span>GEMINI AI 분석</span>
+          <span id="ai-res-tag">ANALYZING</span>
+        </div>
+        <div id="ai-text" style="font-size:12px; line-height:1.6; color:var(--text2);">배선 논리를 분석 중입니다...</div>
+      </div>
+      
+      <div id="alt-status">MAGNETIC SNAPPING: <span id="alt-pct">0%</span></div>
+      <img id="camera-stream" src="/video_feed">
+      <canvas id="c-sim"></canvas>
+    </div>
+  </div>
+
+  <div class="panel right">
+    <div class="sec">정확도 분석</div>
+    <div class="data-card">
+      <div style="font-size:24px; font-family:var(--mono); text-align:right;" id="score-val">0%</div>
+      <div style="height:4px; background:var(--surface2); border-radius:2px; margin-top:5px;">
+        <div id="score-bar" style="width:0%; height:100%; background:var(--accent); transition:0.5s;"></div>
+      </div>
+    </div>
+
+    <div class="sec">마우스 좌표 (Norm)</div>
+    <div class="data-card" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-family:var(--mono);">
+      <div>X: <span id="mx">0</span></div>
+      <div>Y: <span id="my">0</span></div>
+    </div>
+
+    <div class="sec">도움말</div>
+    <div class="data-card" style="font-size:11px; color:var(--text2); line-height:1.6;">
+      1. 📸 캡처 후 선을 그리세요.<br>
+      2. <strong>Alt 키</strong>를 누르면 단자에 자석처럼 붙습니다.<br>
+      3. 완료 후 <strong>AI 검증</strong>을 누르세요.
+    </div>
+  </div>
+</div>
+
+<script>
+// --- ROS2 & 전역 설정 ---
+const ros = new ROSLIB.Ros({ url: 'ws://localhost:9090' });
+let detectedTerminals = [];
+let isPractice = false;
+let isAltPressed = false;
+let isDrawing = false;
+let lines = [];
+let lastPoint = null;
+
+const canvas = document.getElementById('c-sim');
+const ctx = canvas.getContext('2d');
+
+// --- 윈도우 초기화 ---
+window.onload = () => {
+  resizeCanvas();
+  setInterval(() => { document.getElementById('clock').textContent = new Date().toTimeString().slice(0,8); }, 1000);
+  setInterval(updateBrainSequence, 1000); // 1초마다 Brain 순서 업데이트
+};
+
+function resizeCanvas() {
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+}
+
+// --- ROS 구독: YOLO 데이터 ---
+const coordSub = new ROSLIB.Topic({ ros: ros, name: '/eye/terminal_centers', messageType: 'std_msgs/String' });
+coordSub.subscribe((msg) => {
+  detectedTerminals = JSON.parse(msg.data);
+  document.getElementById('yolo-list').innerHTML = detectedTerminals.map(t => 
+    `<div>• ${t.label}: [${t.point[1]}, ${t.point[0]}]</div>`).join('');
+});
+
+// --- Brain AI 시퀀스 업데이트 (Polling) ---
+async function updateBrainSequence() {
+  try {
+    const response = await fetch('/get_sequence');
+    const data = await response.json();
+    const listEl = document.getElementById('brain-sequence-list');
+    const countEl = document.getElementById('seq-count');
+    
+    if (data && data.length > 0) {
+      countEl.textContent = data.length;
+      listEl.innerHTML = data.map((item, idx) => `
+        <div class="sequence-item ${idx === 0 ? 'active' : ''}">
+          <div class="seq-num">${idx + 1}</div>
+          <div class="seq-info">
+            <div class="seq-label">${item.label}</div>
+            <div class="seq-coord">Y:${item.point[0]} X:${item.point[1]}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch (e) { console.error("Sequence fetch failed", e); }
+}
+
+// --- Alt 키 핸들링 ---
+window.onkeydown = (e) => { if(e.key === 'Alt') { isAltPressed = true; document.getElementById('alt-status').style.display = 'block'; e.preventDefault(); } };
+window.onkeyup = (e) => { if(e.key === 'Alt') { isAltPressed = false; document.getElementById('alt-status').style.display = 'none'; } };
+
+function togglePractice() {
+  isPractice = !isPractice;
+  document.getElementById('btn-mode').classList.toggle('active');
+  document.getElementById('btn-check').style.display = isPractice ? 'block' : 'none';
+  if(isPractice) addLog("현장 고정 완료. 배선을 시작하세요.", "ok");
+  else clearCanvas();
+}
+
+// --- 드로잉 & 자석 효과 ---
+canvas.onmousedown = (e) => {
+  if(!isPractice) return;
+  isDrawing = true;
+  const r = canvas.getBoundingClientRect();
+  lastPoint = getMagneticPoint(e.clientX - r.left, e.clientY - r.top);
+};
+
+canvas.onmousemove = (e) => {
+  const r = canvas.getBoundingClientRect();
+  const currentRaw = { x: e.clientX - r.left, y: e.clientY - r.top };
+  
+  document.getElementById('mx').textContent = Math.round((currentRaw.x / canvas.width) * 1000);
+  document.getElementById('my').textContent = Math.round((currentRaw.y / canvas.height) * 1000);
+
+  if(!isDrawing || !isPractice) return;
+
+  const current = getMagneticPoint(currentRaw.x, currentRaw.y);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  lines.forEach(l => drawLine(l.from, l.to, '#38bdf8'));
+  drawLine(lastPoint, current, isAltPressed ? '#34d399' : '#38bdf8');
+};
+
+canvas.onmouseup = (e) => {
+  if(!isDrawing) return;
+  const r = canvas.getBoundingClientRect();
+  const endPoint = getMagneticPoint(e.clientX - r.left, e.clientY - r.top);
+  lines.push({ from: lastPoint, to: endPoint });
+  isDrawing = false;
+};
+
+function getMagneticPoint(x, y) {
+  if(!isAltPressed) return { x, y };
+  const nx = (x / canvas.width) * 1000;
+  const ny = (y / canvas.height) * 1000;
+  let nearest = null; let minDist = 60;
+
+  detectedTerminals.forEach(t => {
+    const d = Math.sqrt(Math.pow(nx - t.point[1], 2) + Math.pow(ny - t.point[0], 2));
+    if(d < minDist) { minDist = d; nearest = t; }
+  });
+
+  if(nearest) {
+    document.getElementById('alt-pct').textContent = Math.max(0, 100 - minDist).toFixed(0) + "%";
+    return { x: (nearest.point[1]/1000)*canvas.width, y: (nearest.point[0]/1000)*canvas.height };
+  }
+  return { x, y };
+}
+
+function drawLine(p1, p2, col) {
+  ctx.strokeStyle = col; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.shadowBlur = 10; ctx.shadowColor = col;
+  ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+function clearCanvas() { ctx.clearRect(0,0,canvas.width,canvas.height); lines = []; }
+
+// --- Gemini AI 검증 ---
+async function checkWithGemini() {
+  addLog("Gemini AI 분석 시작...", "ai");
+  document.getElementById('ai-bubble').style.display = 'block';
+  
+  const imageData = canvas.toDataURL('image/jpeg');
+  try {
+    const response = await fetch('/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: imageData })
+    });
+    const result = await response.json();
+
+    document.getElementById('ai-text').textContent = result.reason;
+    document.getElementById('ai-res-tag').textContent = result.result;
+    
+    if(result.result === "OK") {
+      document.getElementById('score-val').textContent = "100%";
+      document.getElementById('score-bar').style.width = "100%";
+      addLog("검증 성공!", "ok");
+    } else {
+      document.getElementById('score-val').textContent = "NG";
+      document.getElementById('score-bar').style.width = "0%";
+      addLog("검증 실패: " + result.reason, "err");
+    }
+  } catch(e) { addLog("AI 서버 연결 오류", "err"); }
+}
+
+function addLog(msg, type) {
+  const lb = document.getElementById('log-body');
+  const d = document.createElement('div');
+  d.className = `log-entry ${type}`;
+  d.textContent = `[${new Date().toLocaleTimeString().slice(0,8)}] ${msg}`;
+  lb.prepend(d);
+}
+</script>
+</body>
+</html>
