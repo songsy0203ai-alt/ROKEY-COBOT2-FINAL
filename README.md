@@ -1,4 +1,4 @@
-# 🤖 Doosan Robot AI-driven Assembly & Monitoring System
+# 🤖 Gemini Robotics와 M0609를 이용한 PLC 회로 배선 협업 로봇 시스템
 
 두산 M0609 협동 로봇과 **Gemini Robotics ER**를 결합하여 PLC 회로도 결선 공정을 사람 작업자와 실시간으로 소통하며 협업하는 시스템입니다. YOLO 기반의 객체 탐지와 Gemini Robotics ER의 공간 추론을 통해 PLC 회로도 작업 우선순위를 결정하며, 작업자와의 음성 상호작용(STT/TTS)을 통해 안전하고 정밀한 자동화를 구현합니다.
 
