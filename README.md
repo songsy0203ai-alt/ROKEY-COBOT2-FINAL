@@ -25,7 +25,7 @@
 .
 .
 ├── README.md
-├── data
+├── 01_data
 │   ├── calibration                                     # Calibration에 필요한 변환행렬들
 │   │   ├── T_cam2base.npy 
 │   │   ├── T_gripper2camera.npy
@@ -36,7 +36,7 @@
 │       ├── plc_circuit.png
 │       ├── relay_circuit.jpg
 │       └── timer_circuit.jpg
-├── gemini_robot_pkg
+├── 02_gemini_robot_pkg
 │   ├── app.py                                          # UI 데모 파일1 (가상 전선 배선)
 │   ├── app_1.py                                        # UI 데모 파일 2 (로그인 화면)
 │   ├── brain.py                                        # Brain 노드 소스 1 (사람이 하는 일을 먼저 수행하도록 안내)
@@ -50,20 +50,20 @@
 │   ├── nerve.py                                        # 로봇 좌표로 변환하는 노드
 │   └── onrobot.py                                      # 그리퍼 기능 import 용 노드
 ├── package.xml
-├── resource
+├── 03_resource
 │   ├── gemini_robot_pkg
 │   ├── plc_circuit.png                                 # 전체 회로도 이미지
 │   ├── relay_circuit.jpg                               # relay 부품 내부 단자 회로도 이미지
 │   └── timer_circuit.jpg                               # timer 부품 내부 단자 회로도 이미지
 ├── setup.cfg
 ├── setup.py
-├── static                                              # UI 구동에 필요한 정적 리소스
+├── 04_static                                              # UI 구동에 필요한 정적 리소스
 │   └── style.css
-├── templates                                           # UI 구동에 필요한 html 템플릿
+├── 05_templates                                           # UI 구동에 필요한 html 템플릿
 │   ├── index.html
 │   ├── layout.html
 │   └── login.html                                      # 로그인 기능용 템플릿
-└── trained_models                                      # 시스템 구동에 필요한 YOLO 모델들
+└── 06_trained_models                                      # 시스템 구동에 필요한 YOLO 모델들
     ├── best_lamp_v_260225.pt                           # lamp det용 
     ├── best_power.pt                                   # power det용 
     ├── best_relay.pt                                   # relay det용 
@@ -78,16 +78,16 @@
 
 | 폴더명 | 설명 |
 | --- | --- |
-| **`gemini_robot_pkg`** | 로봇 전체 시스템 구동에 필요한 전체 노드들의 소스가 위치한 폴더입니다. |
-| **`trained_models`** | eye(눈) 노드 실행에 필요한 YOLO 객체 탐지 모델들이 위치한 폴더입니다. |
-| **`data/circuits`** | brain(뇌) 노드의 공간 추론에 필요한 회로도 이미지들이 위치한 폴더입니다. |
+| **`02_gemini_robot_pkg`** | 로봇 전체 시스템 구동에 필요한 전체 노드들의 소스가 위치한 폴더입니다. |
+| **`06_trained_models`** | eye(눈) 노드 실행에 필요한 YOLO 객체 탐지 모델들이 위치한 폴더입니다. |
+| **`01_data/circuits`** | brain(뇌) 노드의 공간 추론에 필요한 회로도 이미지들이 위치한 폴더입니다. |
 
 ---
 
 ## 📊 System Representing Images
 
 ### 1. System Map
-![이미지 설명](resource/map.png)
+![이미지 설명](03_resource/map.png)
 
 ---
 
@@ -136,10 +136,10 @@
 * **Python Libraries** : `ultralytics`, `scipy`, `google-generativeai`, `speech_recognition`, `gTTS`
 * **'GEMINI_API_KEY_BRAIN', 'GEMINI_API_KEY_EAR'** : Google AI Studio에서 할당 받은 API Key를 `~/.bashrc`에서 직접 환경변수 설정 필수
 * **HardWare Requirements** : 
-    ![이미지 설명](resource/hardware.png)
+    ![이미지 설명](03_resource/hardware.png)
 
 ### 2. Execution
 
-![이미지 설명](resource/terminal_execution.png)
+![이미지 설명](03_resource/terminal_execution.png)
 
 ---
