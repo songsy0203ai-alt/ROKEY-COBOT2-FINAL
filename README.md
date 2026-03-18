@@ -15,10 +15,10 @@
 ## 📂 Project Structure
 
 ### 1. Flow Chart
-![이미지 설명](resource/flow_chart.png)
+![이미지 설명](03_resource/flow_chart.png)
 
 ### 2. System Architecture
-![이미지 설명](resource/system_architecture.png)
+![이미지 설명](03_resource/system_architecture.png)
 
 ### 3. Code Architecture
 ```text
